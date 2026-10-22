@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>香港身份證校驗碼檢查</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f3f5f7;color:#202938;margin:0;padding:22px}
+main{max-width:520px;margin:25px auto;background:white;padding:24px;border-radius:18px;box-shadow:0 4px 18px #0001}
+h1{font-size:25px}
+p{line-height:1.6;color:#596273}
+input{box-sizing:border-box;width:100%;padding:14px;font-size:19px;border:1px solid #aab3c0;border-radius:9px;margin:10px 0}
+button{border:0;border-radius:9px;padding:13px 18px;font-size:17px;background:#1769e0;color:white;margin:5px 5px 5px 0}
+button.secondary{background:#e8edf4;color:#202938}
+#result{margin-top:18px;padding:14px;border-radius:9px;line-height:1.6;overflow-wrap:anywhere}
+.note{font-size:13px;color:#687386}
+</style>
+</head>
+<body>
+<main>
+<h1>香港身份證校驗碼檢查</h1>
+<p>輸入身份證號碼，檢查格式及校驗碼是否吻合。</p>
+<form id="checker">
+<input id="hkid" type="text" placeholder="例如：A123456(3)" autocomplete="off" autocapitalize="characters" required>
+<button type="submit">開始檢查</button>
+<button type="button" class="secondary" id="clear">清除</button>
+</form>
+<div id="result" aria-live="polite">請輸入號碼後開始檢查。</div>
+<p class="note">私隱提示：檢查在你的瀏覽器本機進行，不會由本頁程式傳送號碼到伺服器。校驗碼吻合不代表身份證真實存在或持有人身份已獲核實。</p>
+</main>
+<script>
+(function(){
+const input=document.getElementById('hkid');
+const result=document.getElementById('result');
+function check(e){
+if(e)e.preventDefault();
+const s=input.value.toUpperCase().replace(/\s+/g,'');
+const m=s.match(/^([A-Z]{1,2})([0-9]{6})([0-9A])$/) ||
+s.match(/^([A-Z]{1,2})([0-9]{6})\(([0-9A])\)$/);
+if(!m){
+result.style.background='#fff1d6';
+result.textContent='格式不正確。請輸入一至兩個英文字母、六位數字及校驗碼，例如 A123456(3) 或 AB123456(7)。';
+return;
+}
+const prefix=m[1], digits=m[2], cd=m[3];
+let sum=0;
+const chars=prefix.length===1 ? [' ',prefix,...digits] : [...prefix,...digits];
+const weights=[9,8,7,6,5,4,3,2];
+for(let i=0;i<8;i++){
+let c=chars[i];
+let v;
+if(c===' ')v=36;
+else if(/[A-Z]/.test(c))v=c.charCodeAt(0)-65+10;
+else v=Number(c);
+sum+=v*weights[i];
+}
+const rem=(11-(sum%11))%11;
+const expected=rem===10?'A':String(rem);
+const ok=cd===expected;
+result.style.background=ok?'#e1f7e8':'#ffe5e5';
+result.textContent=ok
+?'校驗碼吻合。這只代表計算結果吻合，並不能證明身份證真實存在。'
+:'校驗碼不吻合。按此算法，預期校驗碼為 '+expected+'。請檢查輸入是否有誤。';
+}
+document.getElementById('checker').addEventListener('submit',check);
+document.getElementById('clear').addEventListener('click',function(){
+input.value='';
+result.style.background='transparent';
+result.textContent='請輸入號碼後開始檢查。';
+input.focus();
+});
+})();
+</script>
+</body>
+</html>
